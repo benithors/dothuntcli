@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# binaries
+/dothuntcli
+*.exe
+*.dll
+*.so
+*.dylib
+
+# test binaries
+*.test
+
+# coverage
+coverage.out
