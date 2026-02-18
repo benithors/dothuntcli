@@ -23,6 +23,15 @@ go build -o dothuntcli ./cmd/dothuntcli
 ./dothuntcli --help
 ```
 
+Install via Homebrew tap:
+
+```bash
+brew tap benithors/tap
+brew install benithors/tap/dothuntcli
+```
+
+Release process for Homebrew updates: `docs/releasing-homebrew.md`.
+
 ## Commands
 
 ### Check explicit domains
