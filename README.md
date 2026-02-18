@@ -1,8 +1,8 @@
 # dothuntcli
 
-Go CLI for checking *best-effort* domain availability and for generating/checking candidate domains from a phrase.
+Go CLI for checking *best-effort* domain availability.
 
-## What “available” means
+## What "available" means
 
 This tool reports `available` when RDAP/WHOIS indicates the domain is **not currently registered**.
 
@@ -37,24 +37,6 @@ Read newline-delimited domains from stdin too:
 printf "openai.com\nexample.com\n" | ./dothuntcli --ndjson check
 ```
 
-### Search from a phrase (agent-friendly)
-
-Generate candidate labels from a phrase, combine with TLDs, check availability, and emit results.
-
-Default filter is `--only auto`:
-- If a registrar is configured, `auto` means `buyable`
-- Otherwise, `auto` means `available`
-
-```bash
-./dothuntcli --ndjson search "Ki agentur" --tlds com,de,io
-```
-
-Include `taken` and `unknown` results:
-
-```bash
-./dothuntcli --ndjson search "Ki agentur" --tlds com,de,io --only all
-```
-
 ### Registrar checks (Porkbun)
 
 If you set `PORKBUN_API_KEY` and `PORKBUN_SECRET_API_KEY`, `--registrar auto` (default) will enrich results with `buyable`/`price` info.
@@ -62,7 +44,7 @@ If you set `PORKBUN_API_KEY` and `PORKBUN_SECRET_API_KEY`, `--registrar auto` (d
 You can also force it:
 
 ```bash
-./dothuntcli --ndjson --registrar porkbun search "Ki agentur" --tlds com --only buyable
+./dothuntcli --ndjson --registrar porkbun check openai.com
 ```
 
 ## Output formats
@@ -83,8 +65,6 @@ Each line is a JSON object like:
 
 ```json
 {
-  "phrase": "Ki agentur",
-  "score": 100,
   "domain": "ki-agentur.com",
   "label": "ki-agentur",
   "tld": "com",
@@ -107,6 +87,5 @@ Each line is a JSON object like:
 ```
 
 Notes:
-- `phrase` and `score` are only set for `search`.
 - `rdap_*` fields appear when RDAP was attempted (including `rdap_status`/`rdap_reason`/`rdap_error`).
 - `whois_*` fields appear when WHOIS was attempted (including `whois_status`/`whois_reason`/`whois_error`).

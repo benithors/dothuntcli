@@ -171,7 +171,6 @@ func newRootCmd(ver string) *cobra.Command {
 	}
 
 	root.AddCommand(newCheckCmd(cfg))
-	root.AddCommand(newSearchCmd(cfg))
 
 	return root
 }

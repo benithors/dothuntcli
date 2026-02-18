@@ -19,12 +19,6 @@ func TestRun_NoArgs_Exit2(t *testing.T) {
 	}
 }
 
-func TestRun_SearchMissingArgs_Exit2(t *testing.T) {
-	if got := runWithArgs("search"); got != 2 {
-		t.Fatalf("exit=%d, want 2", got)
-	}
-}
-
 func TestRun_UnknownCommand_Exit2(t *testing.T) {
 	if got := runWithArgs("nope"); got != 2 {
 		t.Fatalf("exit=%d, want 2", got)
