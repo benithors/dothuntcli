@@ -1,5 +1,7 @@
 # dothuntcli
 
+<img width="400" height="400" alt="dothuntcli app icon" src="app-icon.png" />
+
 Go CLI for checking *best-effort* domain availability.
 
 ## What "available" means
