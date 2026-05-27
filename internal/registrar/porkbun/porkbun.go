@@ -216,15 +216,44 @@ type checkDomainResponse struct {
 }
 
 type apiLimits struct {
-	TTL             string `json:"TTL"`
-	Limit           string `json:"limit"`
-	Used            int    `json:"used"`
-	NaturalLanguage string `json:"naturalLanguage"`
+	TTL             jsonInt `json:"TTL"`
+	Limit           jsonInt `json:"limit"`
+	Used            int     `json:"used"`
+	NaturalLanguage string  `json:"naturalLanguage"`
+}
+
+type jsonInt int
+
+func (i *jsonInt) UnmarshalJSON(b []byte) error {
+	raw := strings.TrimSpace(string(b))
+	if raw == "" || raw == "null" {
+		*i = 0
+		return nil
+	}
+
+	if strings.HasPrefix(raw, `"`) {
+		var s string
+		if err := json.Unmarshal(b, &s); err != nil {
+			return err
+		}
+		raw = strings.TrimSpace(s)
+	}
+	if raw == "" {
+		*i = 0
+		return nil
+	}
+
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		return err
+	}
+	*i = jsonInt(n)
+	return nil
 }
 
 func parseLimits(l apiLimits) *registrar.Limits {
-	ttl, _ := strconv.Atoi(strings.TrimSpace(l.TTL))
-	limit, _ := strconv.Atoi(strings.TrimSpace(l.Limit))
+	ttl := int(l.TTL)
+	limit := int(l.Limit)
 	if ttl == 0 && limit == 0 && l.Used == 0 && strings.TrimSpace(l.NaturalLanguage) == "" {
 		return nil
 	}
