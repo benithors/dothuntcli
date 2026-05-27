@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 )
@@ -28,7 +29,7 @@ func run() int {
 				fmt.Fprintln(os.Stderr)
 			}
 			if ce.ShowUsage && ce.Cmd != nil {
-				_ = ce.Cmd.Usage()
+				_ = usageToStderr(ce.Cmd)
 			}
 			return ce.Code
 		}
@@ -45,8 +46,16 @@ func run() int {
 		if executed == nil {
 			executed = root
 		}
-		_ = executed.Usage()
+		_ = usageToStderr(executed)
 		return 2
 	}
 	return 0
+}
+
+func usageToStderr(cmd interface {
+	SetOut(io.Writer)
+	Usage() error
+}) error {
+	cmd.SetOut(os.Stderr)
+	return cmd.Usage()
 }

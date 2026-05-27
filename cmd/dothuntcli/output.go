@@ -21,25 +21,26 @@ const (
 	formatPlain
 )
 
-func resolveFormat(flagVal string, stdout *os.File) outputFormat {
-	switch strings.ToLower(strings.TrimSpace(flagVal)) {
+func resolveFormat(flagVal string, stdout *os.File) (outputFormat, error) {
+	raw := strings.TrimSpace(flagVal)
+	switch strings.ToLower(raw) {
 	case "table":
-		return formatTable
+		return formatTable, nil
 	case "ndjson":
-		return formatNDJSON
+		return formatNDJSON, nil
 	case "json":
-		return formatJSON
+		return formatJSON, nil
 	case "plain":
-		return formatPlain
+		return formatPlain, nil
 	case "auto", "":
 	default:
-		// Unknown format: fall back to auto.
+		return 0, fmt.Errorf("invalid --format %q (use auto|table|ndjson|json|plain)", raw)
 	}
 
 	if term.IsTerminal(int(stdout.Fd())) {
-		return formatTable
+		return formatTable, nil
 	}
-	return formatNDJSON
+	return formatNDJSON, nil
 }
 
 func writeResults(w io.Writer, format outputFormat, results []availability.Result) error {

@@ -43,8 +43,13 @@ func newRootCmd(ver string) *cobra.Command {
 	cfg := &config{Version: ver}
 
 	root := &cobra.Command{
-		Use:           "dothuntcli",
-		Short:         "Find available domain names (best-effort)",
+		Use:   "dothuntcli",
+		Short: "Find available domain names (best-effort)",
+		Example: strings.TrimSpace(`
+dothuntcli check openai.com example.com
+printf "openai.com\nexample.com\n" | dothuntcli --ndjson check
+dothuntcli --format json --registrar none check example.com
+`),
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -109,7 +114,11 @@ func newRootCmd(ver string) *cobra.Command {
 			formatStr = "plain"
 		}
 
-		cfg.outFormat = resolveFormat(formatStr, os.Stdout)
+		outFormat, err := resolveFormat(formatStr, os.Stdout)
+		if err != nil {
+			return usageErr(cmd, err)
+		}
+		cfg.outFormat = outFormat
 
 		rdapClient := rdap.NewClient(rdap.Options{
 			Timeout: cfg.Timeout,
@@ -133,12 +142,17 @@ func newRootCmd(ver string) *cobra.Command {
 		choice := strings.ToLower(strings.TrimSpace(cfg.Registrar))
 		switch choice {
 		case "", "auto":
-			apiKey := strings.TrimSpace(os.Getenv("PORKBUN_API_KEY"))
-			secret := strings.TrimSpace(os.Getenv("PORKBUN_SECRET_API_KEY"))
-			if apiKey != "" && secret != "" {
+			creds, err := loadPorkbunCredentials()
+			if err != nil {
+				if cfg.Verbose && !cfg.Quiet {
+					fmt.Fprintf(os.Stderr, "Porkbun credentials unavailable: %v\n", err)
+				}
+				break
+			}
+			if creds.APIKey != "" && creds.SecretAPIKey != "" {
 				c, err := porkbun.NewClient(porkbun.Options{
-					APIKey:       apiKey,
-					SecretAPIKey: secret,
+					APIKey:       creds.APIKey,
+					SecretAPIKey: creds.SecretAPIKey,
 					Timeout:      cfg.Timeout,
 				})
 				if err != nil {
@@ -149,14 +163,16 @@ func newRootCmd(ver string) *cobra.Command {
 		case "none":
 			cfg.registrar = nil
 		case "porkbun":
-			apiKey := strings.TrimSpace(os.Getenv("PORKBUN_API_KEY"))
-			secret := strings.TrimSpace(os.Getenv("PORKBUN_SECRET_API_KEY"))
-			if apiKey == "" || secret == "" {
-				return usageErr(cmd, fmt.Errorf("missing Porkbun API keys (set PORKBUN_API_KEY and PORKBUN_SECRET_API_KEY)"))
+			creds, err := loadPorkbunCredentials()
+			if err != nil {
+				return err
+			}
+			if creds.APIKey == "" || creds.SecretAPIKey == "" {
+				return usageErr(cmd, fmt.Errorf("missing Porkbun API keys (%s)", porkbunCredentialsHint()))
 			}
 			c, err := porkbun.NewClient(porkbun.Options{
-				APIKey:       apiKey,
-				SecretAPIKey: secret,
+				APIKey:       creds.APIKey,
+				SecretAPIKey: creds.SecretAPIKey,
 				Timeout:      cfg.Timeout,
 			})
 			if err != nil {

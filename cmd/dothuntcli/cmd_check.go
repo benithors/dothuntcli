@@ -18,14 +18,24 @@ func newCheckCmd(cfg *config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check [domain...]",
 		Short: "Check availability for explicit domains (args and/or stdin)",
-		Args:  cobra.ArbitraryArgs,
+		Example: strings.TrimSpace(`
+dothuntcli check openai.com example.com
+printf "openai.com\nexample.com\n" | dothuntcli --ndjson check
+dothuntcli --format json --registrar none check example.com
+`),
+		Args: cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inputDomains, err := readDomainsFromArgsAndStdin(args, os.Stdin)
 			if err != nil {
 				return &cliError{Code: 1, Err: fmt.Errorf("failed to read domains: %w", err), Cmd: cmd}
 			}
 			if len(inputDomains) == 0 {
-				return &cliError{Code: 2, ShowUsage: true, Cmd: cmd}
+				return &cliError{
+					Code:      2,
+					Err:       fmt.Errorf("missing domains; pass domains as args or pipe newline-delimited domains on stdin"),
+					ShowUsage: true,
+					Cmd:       cmd,
+				}
 			}
 
 			results := cfg.checker.CheckDomains(cmd.Context(), inputDomains)

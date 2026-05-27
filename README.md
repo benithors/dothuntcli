@@ -48,9 +48,33 @@ Read newline-delimited domains from stdin too:
 printf "openai.com\nexample.com\n" | ./dothuntcli --ndjson check
 ```
 
+Write a single JSON array and skip registrar enrichment:
+
+```bash
+./dothuntcli --format json --registrar none check example.com
+```
+
 ### Registrar checks (Porkbun)
 
 If you set `PORKBUN_API_KEY` and `PORKBUN_SECRET_API_KEY`, `--registrar auto` (default) will enrich results with `buyable`/`price` info.
+
+On macOS, persistent local credentials are read from Keychain. dothuntcli looks for two generic password items:
+
+```bash
+security add-generic-password -U -s "dothuntcli/porkbun" -a "api-key" -w
+security add-generic-password -U -s "dothuntcli/porkbun" -a "secret-api-key" -w
+```
+
+Keep `-w` as the final option so `security` prompts for the secret. Avoid passing secrets directly on the command line, where they can be saved in shell history.
+
+As a compatibility fallback, dothuntcli also reads a dotenv-style file from the user config directory:
+
+```text
+PORKBUN_API_KEY=...
+PORKBUN_SECRET_API_KEY=...
+```
+
+On macOS this defaults to `~/Library/Application Support/dothuntcli/porkbun.env`; on Linux it defaults to `${XDG_CONFIG_HOME:-~/.config}/dothuntcli/porkbun.env`. Override it with `DOTHUNTCLI_PORKBUN_CREDENTIALS_FILE`.
 
 You can also force it:
 
