@@ -78,6 +78,20 @@ func TestClient_CheckDomain_Success(t *testing.T) {
 	}
 }
 
+func TestParseLimits_AcceptsNumericValues(t *testing.T) {
+	t.Parallel()
+
+	var got apiLimits
+	if err := json.Unmarshal([]byte(`{"TTL":10,"limit":100,"used":1,"naturalLanguage":"example"}`), &got); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+
+	limits := parseLimits(got)
+	if limits == nil || limits.TTLSeconds != 10 || limits.Limit != 100 || limits.Used != 1 {
+		t.Fatalf("Limits=%#v, want parsed", limits)
+	}
+}
+
 func TestClient_CheckDomain_ErrorStatus(t *testing.T) {
 	t.Parallel()
 
